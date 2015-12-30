@@ -1,0 +1,16 @@
+{
+  "name": "xenebacker",
+  "version": "1.0.0",
+  "description": "A small backup program for our Minecraft FTP Server",
+  "main": "index.js",
+  "dependencies": {
+    "cron": "^1.1.0",
+    "ftp": "^0.3.10",
+    "nodemon": "^1.8.1"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Eric Gonzalo",
+  "license": "ISC"
+}
