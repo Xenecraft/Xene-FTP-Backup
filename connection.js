@@ -1,13 +1,60 @@
-  // var Client = require('ftp');
-  var CONNECTION_SETTINGS = require('./settings.js') ;
+'use strict';
+var Client = require('ftp');
+var mkdirp = require('mkdirp');
+var fs = require('fs');
+var moment = require('moment');
+var settings = require('./settings.js');
 
+var today = moment().format('YYYY[.]MM[.]DD');
+var destinationPath = settings.COPY_PATH.destinationPath;
+var copyPath = settings.COPY_PATH.folderName;
+var finalDestinationPath = destinationPath + today;
 
-  // var c = new Client();
-  // c.on('ready', function() {
-  //     c.list(function(err, list) {
-  //         if (err) throw err;
-  //         console.dir(list);
-  //         c.end();
-  //     });
-  // });
-  console.log(CONNECTION_SETTINGS.host);
+var c = new Client();
+
+console.log('----------------------');
+console.log('Starting your backup!');
+console.log('----------------------');
+makeFolder(finalDestinationPath);
+
+c.on('ready', function() {
+  c.list(copyPath, function(err, list) {
+    if (err) throw err;
+    list.forEach((item) => {
+      if (item.name.indexOf('.') !== -1)
+        downloadFile(copyPath, item.name)
+      else{
+      	//Recursively go down the paths and files
+      	c.list(copyPath + '/'+item.name, (err, list)=>{
+      		console.log(list);
+      	})
+      }
+    })
+    c.end();
+  });
+
+});
+
+c.connect(settings.CONNECTION_SETTINGS);
+
+function downloadFile(filePath, fileName) {
+	let finalFile = filePath + '/' + fileName;
+	makeFolder(finalDestinationPath + '\\' + filePath)
+  c.get(finalFile, (err, stream) => {
+  	console.log('dling', finalFile);
+    if (err) throw err;
+    stream.once('close', function() {
+      c.end();
+    });
+    stream.pipe(fs.createWriteStream(finalDestinationPath + '\\' + finalFile));
+  })
+}
+
+function makeFolder(folderPath) {
+  fs.access(folderPath, fs.F_OK, (err) => {
+    mkdirp(folderPath, (err) => {
+      // if (!err) console.log('Folder exists');
+      // else console.log(finalDestinationPath, 'created');
+    });
+  })
+}

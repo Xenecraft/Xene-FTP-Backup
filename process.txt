@@ -1,0 +1,7 @@
+Process:
+
+1) Look into main directory
+2) Get back list of files/folders
+3) if file.contains('.'), then download, else look in further
+4) keep name of top directory
+5) check if files again
