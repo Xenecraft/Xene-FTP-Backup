@@ -18,17 +18,13 @@ console.log('----------------------');
 makeFolder(finalDestinationPath);
 
 c.on('ready', function() {
-  c.list(copyPath, function(err, list) {
+  c.list(copyPath, (err, list) => {
     if (err) throw err;
     list.forEach((item) => {
-      if (item.name.indexOf('.') !== -1)
+      if (item.type == '-')
         downloadFile(copyPath, item.name)
-      else{
-      	//Recursively go down the paths and files
-      	c.list(copyPath + '/'+item.name, (err, list)=>{
-      		console.log(list);
-      	})
-      }
+      else
+        recursiveLookDown(copyPath + '/' + item.name)
     })
     c.end();
   });
@@ -38,10 +34,10 @@ c.on('ready', function() {
 c.connect(settings.CONNECTION_SETTINGS);
 
 function downloadFile(filePath, fileName) {
-	let finalFile = filePath + '/' + fileName;
-	makeFolder(finalDestinationPath + '\\' + filePath)
+  let finalFile = filePath + '/' + fileName;
+  makeFolder(finalDestinationPath + '\\' + filePath)
   c.get(finalFile, (err, stream) => {
-  	console.log('dling', finalFile);
+    console.log('dling', finalFile);
     if (err) throw err;
     stream.once('close', function() {
       c.end();
@@ -53,8 +49,21 @@ function downloadFile(filePath, fileName) {
 function makeFolder(folderPath) {
   fs.access(folderPath, fs.F_OK, (err) => {
     mkdirp(folderPath, (err) => {
-      // if (!err) console.log('Folder exists');
+      if (err)
+        console.log('Folder created');
       // else console.log(finalDestinationPath, 'created');
+    });
+  })
+}
+
+function recursiveLookDown(topDirectory) {
+  c.list(topDirectory, (err, list) => {
+    if (err) throw err
+    list.forEach((item) => {
+      if (item.type == '-')
+        downloadFile(topDirectory, item.name);
+      else
+        recursiveLookDown(topDirectory + '/' + item.name);
     });
   })
 }
