@@ -2,6 +2,8 @@ XeneBackup
 -----
 Since our server was going through some occasional funky saving issues, I wanted to write another failsafe that would make sure that our players' work and world are being saved. This Backup thing is a node.js program written to make periodic backups of our Minecraft server from its FTP!
 
+![Current Output](Backup Thing.png)
+
 Setup
 -----
 1. npm install
