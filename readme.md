@@ -12,6 +12,5 @@ Setup
 
 ToDos:
 -----
-* Include a cronjob to make it nightly/weekly
 * Periodically delete other nights based on the frequency of backups
 * Modularize everything to its own file, cron, backup, copy, delete, etc.

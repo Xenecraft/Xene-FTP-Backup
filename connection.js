@@ -12,26 +12,27 @@ var finalDestinationPath = destinationPath + today;
 
 var c = new Client();
 
-console.log('----------------------');
-console.log('Starting your backup!');
-console.log('----------------------');
-makeFolder(finalDestinationPath);
-
-c.on('ready', function() {
-  c.list(copyPath, (err, list) => {
-    if (err) throw err;
-    list.forEach((item) => {
-      if (item.type == '-')
-        downloadFile(copyPath, item.name)
-      else
-        recursiveLookDown(copyPath + '/' + item.name)
-    })
-    c.end();
+function downloadFTPFiles(){
+	console.log('----------------------');
+	console.log('Starting your backup!');
+	console.log('----------------------');
+	makeFolder(finalDestinationPath);
+	
+  c.on('ready', function() {
+    c.list(copyPath, (err, list) => {
+      if (err) throw err;
+      list.forEach((item) => {
+        if (item.type == '-')
+          downloadFile(copyPath, item.name);
+        else
+          recursiveLookDown(copyPath + '/' + item.name);
+      });
+      c.end();
+    });
   });
 
-});
-
-c.connect(settings.CONNECTION_SETTINGS);
+  c.connect(settings.CONNECTION_SETTINGS);
+};
 
 function downloadFile(filePath, fileName) {
   let finalFile = filePath + '/' + fileName;
@@ -50,7 +51,7 @@ function makeFolder(folderPath) {
   fs.access(folderPath, fs.F_OK, (err) => {
     mkdirp(folderPath, (err) => {
       if (err)
-        console.log('Folder created');
+        console.log('There was an error:', err);
       // else console.log(finalDestinationPath, 'created');
     });
   })
@@ -58,7 +59,7 @@ function makeFolder(folderPath) {
 
 function recursiveLookDown(topDirectory) {
   c.list(topDirectory, (err, list) => {
-    if (err) throw err
+    if (err) throw err;
     list.forEach((item) => {
       if (item.type == '-')
         downloadFile(topDirectory, item.name);
@@ -67,3 +68,5 @@ function recursiveLookDown(topDirectory) {
     });
   })
 }
+
+module.exports = downloadFTPFiles;
