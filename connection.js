@@ -1,19 +1,19 @@
 'use strict';
-var Client = require('ftp');
-var mkdirp = require('mkdirp');
-var fs = require('fs');
-var moment = require('moment');
-var settings = require('./settings.js');
+const Client = require('ftp');
+const mkdirp = require('mkdirp');
+const fs = require('fs');
+const moment = require('moment');
+const settings = require('./settings.js');
 
-const startTime = moment();
-const todayString = startTime.format('YYYY[.]MM[.]DD');
-const destinationPath = settings.COPY_PATH.destinationPath;
-const copyPath = settings.COPY_PATH.folderName;
-const finalDestinationPath = destinationPath + todayString;
-
-var c = new Client();
+let c = new Client();
+let startTime = moment();
 
 function downloadFTPFiles() {
+	let todayString = startTime.format('YYYY[.]MM[.]DD');
+	let destinationPath = settings.COPY_PATH.destinationPath;
+	let copyPath = settings.COPY_PATH.folderName;
+	let finalDestinationPath = destinationPath + todayString;
+
   console.log('----------------------');
   console.log('Starting your backup!');
   console.log('----------------------');
@@ -24,9 +24,9 @@ function downloadFTPFiles() {
       if (err) throw err;
       list.forEach((item) => {
         if (item.type == '-')
-          downloadFile(copyPath, item.name);
+          downloadFile(copyPath, item.name, finalDestinationPath);
         else {
-          recursiveLookDown(copyPath + '/' + item.name);
+          recursiveLookDown(copyPath + '/' + item.name, finalDestinationPath);
         }
       });
       c.end();
@@ -34,20 +34,20 @@ function downloadFTPFiles() {
   });
 
   c.on('end', () => {
-    finishFTPDownload();
+    finishFTPDownload(startTime, finalDestinationPath);
   });
 
   c.connect(settings.CONNECTION_SETTINGS);
 };
 
-function downloadFile(filePath, fileName) {
+function downloadFile(filePath, fileName, finalDestinationPath) {
   let finalFile = filePath + '/' + fileName;
   makeFolder(finalDestinationPath + '\\' + filePath)
   c.get(finalFile, (err, stream) => {
     console.log('[Downloading]', finalFile);
     if (err) throw err;
-    stream.once('close', function() {
-      c.end(finishFTPDownload);
+    stream.once('close', function() {   
+    	//Each file closes connection 	
     });
     stream.pipe(fs.createWriteStream(finalDestinationPath + '\\' + finalFile));
   })
@@ -64,21 +64,23 @@ function makeFolder(folderPath) {
   })
 }
 
-function recursiveLookDown(topDirectory) {
+function recursiveLookDown(topDirectory, finalDestinationPath) {
   c.list(topDirectory, (err, list) => {
     if (err) throw err;
     list.forEach((item) => {
       if (item.type == '-')
-        downloadFile(topDirectory, item.name);
+        downloadFile(topDirectory, item.name, finalDestinationPath);
       else
-        recursiveLookDown(topDirectory + '/' + item.name);
+        recursiveLookDown(topDirectory + '/' + item.name, finalDestinationPath);
     });
   })
 }
 
-function finishFTPDownload() {
+function finishFTPDownload(startTime, finalDestinationPath) {
   let endTime = moment();
   let totalTime = endTime.diff(startTime, 'minutes');
+  let endTimeString = endTime.format('HH[:]mm[:]ss');
+	console.log(`The connection has closed. The time is currently ${endTimeString}.`)
   console.log('----------------------');
   console.log('Your backup has finished:');
   console.log(`This operation took ${totalTime} minutes`);
