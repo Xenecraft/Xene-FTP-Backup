@@ -32,3 +32,8 @@ Setup
 ToDos:
 -----
 * Periodically delete other nights based on the frequency of backups
+* Web interface for managing backups(??)
+
+Extra Notes:
+----
+Feel free to use this for non-Minecraft uses too! This downloads all existing files from an FTP server so you could use it to back up other applications as well! As long as there are files and directories in your FTP folder, then it will take everything out and copy it to your desired destination!
