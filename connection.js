@@ -6,7 +6,7 @@ const moment = require('moment');
 const settings = require('./settings.js');
 const fileEndIgnore = new RegExp(/(.png)|(.jar)/g);
 
-function startFTPDownload() {
+function startFTPDownload(callback) {
   //Instantiate all temporary variables for this routine
   let startTime = moment();
   let startTimeString = startTime.format('HH[:]mm[:]ss');
@@ -20,10 +20,10 @@ function startFTPDownload() {
   console.log('----------------------');
   makeFolder(finalDestinationPath);
 
-  downloadFTPFiles(finalDestinationPath, startTime);
+  downloadFTPFiles(finalDestinationPath, startTime, callback);
 }
 
-function downloadFTPFiles(finalDestinationPath, startTime) {
+function downloadFTPFiles(finalDestinationPath, startTime, callback) {
   //Main function where files are downloaded from. Will be called again if connection breaks.
   let c = new Client();
   let copyPath = settings.COPY_PATH.folderName;
@@ -35,20 +35,20 @@ function downloadFTPFiles(finalDestinationPath, startTime) {
         if (item.type == '-')
           downloadFile(c, copyPath, item.name, finalDestinationPath);
         else
-          recursiveLookDown(c, copyPath + '/' + item.name, finalDestinationPath);
+          recursiveLookDown(c, copyPath + '/' + item.name, finalDestinationPath, startTime);
       });
       c.end();
     });
   });
 
   c.on('end', () => {
-    finishFTPDownload(startTime, finalDestinationPath);
+    finishFTPDownload(startTime, finalDestinationPath, callback);
   });
 
   c.connect(settings.CONNECTION_SETTINGS);
 };
 
-function finishFTPDownload(startTime, finalDestinationPath) {
+function finishFTPDownload(startTime, finalDestinationPath, callback) {
   let endTime = moment();
   let totalTime = endTime.diff(startTime, 'minutes');
   let endTimeString = endTime.format('HH[:]mm[:]ss');
@@ -59,13 +59,18 @@ function finishFTPDownload(startTime, finalDestinationPath) {
   console.log(`This operation took ${totalTime} minutes`);
   console.log(`Your backup is located in ${finalDestinationPath}`);
   console.log('----------------------');
+
+  if(callback){
+    callback();
+  }
 }
 
 function downloadFile(c, filePath, fileName, finalDestinationPath, startTime) {
   let finalFile = filePath + '/' + fileName;
   makeFolder(finalDestinationPath + '\\' + filePath)
 
-  if (!fileName.match(fileEndIgnore)) {
+  //Ignore downloading a file if it matches 
+  if (!fileName.match(fileEndIgnore)) {   
     c.get(finalFile, (err, stream) => {
       console.log('[Downloading]', finalFile);
       if (err) downloadRestart(err, finalDestinationPath, startTime);
@@ -74,18 +79,22 @@ function downloadFile(c, filePath, fileName, finalDestinationPath, startTime) {
         stream.pipe(fs.createWriteStream(finalDestinationPath + '\\' + finalFile));
       }
     })
-  } else
+  } 
+  else
     console.log('[Ignoring] ' + fileName + ' due to settings');
 }
 
-function recursiveLookDown(c, topDirectory, finalDestinationPath) {
+function recursiveLookDown(c, topDirectory, finalDestinationPath, startTime) {
   c.list(topDirectory, (err, list) => {
-    if (err) console.error('[Recrusive Error]', err);
+    if (err) {
+      console.error('[Recrusive Error]', err);
+      downloadRestart(err, finalDestinationPath, startTime);
+    }
     list.forEach((item) => {
       if (item.type == '-')
-        downloadFile(c, topDirectory, item.name, finalDestinationPath);
+        downloadFile(c, topDirectory, item.name, finalDestinationPath, startTime);
       else
-        recursiveLookDown(c, topDirectory + '/' + item.name, finalDestinationPath);
+        recursiveLookDown(c, topDirectory + '/' + item.name, finalDestinationPath, startTime);
     });
   })
 }

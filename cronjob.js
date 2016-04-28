@@ -4,7 +4,9 @@ var settings = require('./settings').CRON_TIME;
 
 console.log('Cronjob has been initiated for', settings);
 var job = new CronJob(settings, ()=>{
-	connection();
+	connection(()=>{
+		//You can queue the next task here!
+	});
 });
 
 job.start();
