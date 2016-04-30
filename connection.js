@@ -60,9 +60,8 @@ function finishFTPDownload(startTime, finalDestinationPath, callback) {
   console.log(`Your backup is located in ${finalDestinationPath}`);
   console.log('----------------------');
 
-  if(callback){
+  if(callback)
     callback();
-  }
 }
 
 function downloadFile(c, filePath, fileName, finalDestinationPath, startTime) {
@@ -70,7 +69,7 @@ function downloadFile(c, filePath, fileName, finalDestinationPath, startTime) {
   makeFolder(finalDestinationPath + '\\' + filePath)
 
   //Ignore downloading a file if it matches 
-  if (!fileName.match(fileEndIgnore)) {   
+  if (!finalFile.match(fileEndIgnore)) {   
     c.get(finalFile, (err, stream) => {
       console.log('[Downloading]', finalFile);
       if (err) downloadRestart(err, finalDestinationPath, startTime);
@@ -89,14 +88,14 @@ function recursiveLookDown(c, topDirectory, finalDestinationPath, startTime) {
     if (err) {
       console.error('[Recrusive Error]', err);
       downloadRestart(err, finalDestinationPath, startTime);
-    }
+    } else {
     list.forEach((item) => {
       if (item.type == '-')
         downloadFile(c, topDirectory, item.name, finalDestinationPath, startTime);
       else
         recursiveLookDown(c, topDirectory + '/' + item.name, finalDestinationPath, startTime);
     });
-  })
+  }})
 }
 
 function makeFolder(folderPath) {
