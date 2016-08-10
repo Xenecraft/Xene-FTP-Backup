@@ -27,10 +27,11 @@ Setup
 	module.exports = {CONNECTION_SETTINGS, COPY_PATH, CRON_TIME};
 
 	```
-3. `node connection` or `node cronjob`
+3. `node test-call` or `node cronjob`
 
 ToDos:
 -----
+* Ability to extract log.gz files, do comparison, and send them to a directory
 * Periodically delete other nights based on the frequency of backups
 * Web interface for managing backups(??)
 

@@ -1,9 +1,12 @@
 'use strict';
+//Node Modules
 const Client = require('ftp');
-const mkdirp = require('mkdirp');
 const fs = require('fs');
 const moment = require('moment');
+
+//My Modules
 const settings = require('./settings.js');
+const utils = require('./utils.js');
 const fileEndIgnore = new RegExp(/(.png)|(.jar)/g);
 
 function startFTPDownload(callback) {
@@ -18,7 +21,8 @@ function startFTPDownload(callback) {
   console.log(`Starting your backup! The time is currently ${startTimeString}.`);
   console.log(`Your files will go into ${finalDestinationPath}`);
   console.log('----------------------');
-  makeFolder(finalDestinationPath);
+  //Create a folder if none exists.
+  utils.makeFolder(finalDestinationPath);
 
   downloadFTPFiles(finalDestinationPath, startTime, callback);
 }
@@ -66,7 +70,7 @@ function finishFTPDownload(startTime, finalDestinationPath, callback) {
 
 function downloadFile(c, filePath, fileName, finalDestinationPath, startTime) {
   let finalFile = filePath + '/' + fileName;
-  makeFolder(finalDestinationPath + '\\' + filePath)
+  utils.makeFolder(finalDestinationPath + '\\' + filePath)
 
   //Ignore downloading a file if it matches 
   if (!finalFile.match(fileEndIgnore)) {   
@@ -96,18 +100,6 @@ function recursiveLookDown(c, topDirectory, finalDestinationPath, startTime) {
         recursiveLookDown(c, topDirectory + '/' + item.name, finalDestinationPath, startTime);
     });
   }})
-}
-
-function makeFolder(folderPath) {
-  //Create a folder if none exists.
-  fs.access(folderPath, fs.F_OK, (err) => {
-    if (err) {
-      mkdirp(folderPath, (err2) => {
-        if (err2)
-          console.log('There was an error:', err2);
-      });
-    }
-  })
 }
 
 function downloadRestart(err, finalDestinationPath, startTime) {
