@@ -7,7 +7,8 @@ const moment = require('moment');
 //My Modules
 const settings = require('./settings.js');
 const utils = require('./utils.js');
-const fileEndIgnore = new RegExp(/(.png)|(.jar)/g);
+const ignoreString = utils.ignoreBuilder(settings.COPY_PATH.ignoreFiles);
+const fileEndIgnore = new RegExp(ignoreString, 'g');
 
 function startFTPDownload(callback) {
   //Instantiate all temporary variables for this routine
@@ -17,14 +18,15 @@ function startFTPDownload(callback) {
   let destinationPath = settings.COPY_PATH.destinationPath;
   let finalDestinationPath = destinationPath + todayString;
 
-  console.log('----------------------');
-  console.log(`Starting your backup! The time is currently ${startTimeString}.`);
-  console.log(`Your files will go into ${finalDestinationPath}`);
-  console.log('----------------------');
-  //Create a folder if none exists.
-  utils.makeFolder(finalDestinationPath);
-
-  downloadFTPFiles(finalDestinationPath, startTime, callback);
+  utils.initFiles(()=>{;
+    utils.writeLogging('----------------------');
+    utils.writeLogging(`Starting your backup! The time is currently ${startTimeString}.`);
+    utils.writeLogging(`Your files will go into ${finalDestinationPath}`);
+    utils.writeLogging('----------------------');
+    
+    utils.makeFolder(finalDestinationPath);
+    downloadFTPFiles(finalDestinationPath, startTime, callback);
+  });
 }
 
 function downloadFTPFiles(finalDestinationPath, startTime, callback) {
@@ -57,12 +59,12 @@ function finishFTPDownload(startTime, finalDestinationPath, callback) {
   let totalTime = endTime.diff(startTime, 'minutes');
   let endTimeString = endTime.format('HH[:]mm[:]ss');
 
-  console.log('----------------------');
-  console.log(`The connection has fully closed. The time is currently ${endTimeString}.`);
-  console.log('Your backup has finished:');
-  console.log(`This operation took ${totalTime} minutes`);
-  console.log(`Your backup is located in ${finalDestinationPath}`);
-  console.log('----------------------');
+  utils.writeLogging('----------------------');
+  utils.writeLogging(`The connection has fully closed. The time is currently ${endTimeString}.`);
+  utils.writeLogging('Your backup has finished:');
+  utils.writeLogging(`This operation took ${totalTime} minutes`);
+  utils.writeLogging(`Your backup is located in ${finalDestinationPath}`);
+  utils.writeLogging('----------------------');
 
   if(callback)
     callback();
@@ -75,7 +77,7 @@ function downloadFile(c, filePath, fileName, finalDestinationPath, startTime) {
   //Ignore downloading a file if it matches 
   if (!finalFile.match(fileEndIgnore)) {   
     c.get(finalFile, (err, stream) => {
-      console.log('[Downloading]', finalFile);
+      utils.writeLogging('[Downloading] ' + finalFile);
       if (err) downloadRestart(err, finalDestinationPath, startTime);
       else {
         stream.once('close', () => { /*Each file closes its own connection*/ });
@@ -84,13 +86,13 @@ function downloadFile(c, filePath, fileName, finalDestinationPath, startTime) {
     })
   } 
   else
-    console.log('[Ignoring] ' + fileName + ' due to settings');
+    utils.writeLogging('[Ignoring] ' + fileName + ' due to settings');
 }
 
 function recursiveLookDown(c, topDirectory, finalDestinationPath, startTime) {
   c.list(topDirectory, (err, list) => {
     if (err) {
-      console.error('[Recrusive Error]', err);
+      utils.writeLogging('[Recrusive Error]' + err, true);
       downloadRestart(err, finalDestinationPath, startTime);
     } else {
     list.forEach((item) => {
@@ -103,10 +105,10 @@ function recursiveLookDown(c, topDirectory, finalDestinationPath, startTime) {
 }
 
 function downloadRestart(err, finalDestinationPath, startTime) {
-  console.log('----------------------');
-  console.error('[Download Error]', err);
-  console.log(`We will restart the download process.`);
-  console.log('----------------------');
+  utils.writeLogging('----------------------');
+  utils.writeLogging('[Download Error] ' + err, true);
+  utils.writeLogging(`We will restart the download process.`);
+  utils.writeLogging('----------------------');
   downloadFTPFiles(finalDestinationPath, startTime);
 }
 

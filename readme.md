@@ -1,6 +1,6 @@
 XeneBackup
 -----
-Since our server was going through some occasional funky saving issues, I wanted to write another failsafe that would make sure that our players' work and world are being saved. This backup application is a node.js application written to make periodic backups of our Minecraft server from its FTP! It includes a cronjob that can run periodically based on the time that you set for it.
+Since our server was going through some occasional funky saving issues, I wanted to write another failsafe that would make sure that our players' work and world are being saved. This backup program is a node.js application written to make periodic backups of our Minecraft server from its FTP! It includes a cronjob that can run periodically based on the time that you set for it.
 
 ![Current Output](Backup Thing.png)
 
@@ -18,7 +18,8 @@ Setup
 
 	var COPY_PATH = {
 		folderName: 'yourFTPFolder',
-		destinationPath: 'whereYourFilesGo'
+		destinationPath: 'whereYourFilesGo',
+		ignoreFiles: ['.filetype', 'textinside', 'fullfile.name'],
 	};
 
 	var CRON_TIME = '00 00 3 * * 0-6';
@@ -28,6 +29,8 @@ Setup
 
 	```
 3. `node test-call` or `node cronjob`
+
+Packages used: 
 
 ToDos:
 -----
