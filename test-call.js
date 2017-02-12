@@ -1,7 +1,8 @@
 'use strict';
 let connection = require('./connection.js');
-// let dropboxSync = require('./cloud-sync.js'); 
+let logFilesSync = require('./cloud-sync.js'); 
 
 connection(()=>{
-	process.exit();
+	logFilesSync();
+	// process.exit();
 });
