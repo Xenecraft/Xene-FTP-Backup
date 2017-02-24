@@ -1,5 +1,7 @@
 XeneBackup
 -----
+Update: Since the [Electron application](https://github.com/Xenecraft/Xene-FTP-Backup-Electron) has become a much cooler thing to pursue, I have taken to just updating that instead. You can use this as a simple command line assist-er. 
+
 Since our server was going through some occasional funky saving issues, I wanted to write another failsafe that would make sure that our players' work and world are being saved. This backup program is a node.js application written to make periodic backups of our Minecraft server from its FTP! It includes a cronjob that can run periodically based on the time that you set for it.
 
 ![Current Output](Backup Thing.png)
